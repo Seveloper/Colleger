@@ -16,70 +16,94 @@ public class StudentsController(IStudentService students) : ControllerBase
     private readonly IStudentService _students = students;
 
     [HttpGet]
-    public ActionResult<IEnumerable<Student>> GetAll()
+    public async Task<ActionResult<IEnumerable<Student>>> GetAll([FromQuery] string? search = null)
     {
-        // TODO: wire repository query
-        return Ok(Array.Empty<Student>());
+        var result = await _students.GetAllAsync(search);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Student>> GetById(int id)
+    {
+        var student = await _students.GetByIdAsync(id);
+        return student is null ? NotFound() : Ok(student);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateStudentRequest request)
+    public async Task<IActionResult> Create([FromBody] StudentRequest request)
     {
-        var createdBy = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid) ? uid : 0;
-
-        var student = new Student
-        {
-            NationalId          = request.NationalId,
-            DocumentType        = request.DocumentType,
-            FirstName           = request.FirstName,
-            MiddleName          = request.MiddleName,
-            FirstLastName       = request.FirstLastName,
-            SecondLastName      = request.SecondLastName,
-            Email               = request.Email,
-            Phone               = request.Phone,
-            PhoneType           = request.PhoneType,
-            Gender              = request.Gender,
-            MaritalStatus       = request.MaritalStatus,
-            Comment             = request.Comment,
-            RegistrationDate    = request.RegistrationDate,
-            NationalityId       = request.NationalityId,
-            Enrollment          = request.Enrollment,
-            MinistryId          = request.MinistryId,
-            Photo               = request.Photo,
-            BirthDate           = request.BirthDate,
-            PreferredShift      = request.PreferredShift,
-            Allergies           = request.Allergies,
-            Illnesses           = request.Illnesses,
-            HealthCondition     = request.HealthCondition,
-            OtherDifficulties   = request.OtherDifficulties,
-            HealthComment       = request.HealthComment,
-            SiblingNumber       = request.SiblingNumber,
-            OrderNumber         = request.OrderNumber,
-            HasConcession       = request.HasConcession,
-            HasMedicalLicense   = request.HasMedicalLicense,
-            HasPendings         = request.HasPendings,
-            CircularSending     = request.CircularSending,
-            AllowPreviousYearsGrading  = request.AllowPreviousYearsGrading,
-            AdmissionFeeAction  = request.AdmissionFeeAction,
-            EnrollmentType      = request.EnrollmentType,
-            DoesNotRequireAdmission = request.DoesNotRequireAdmission,
-            FamilyId            = request.FamilyId,
-            CurrentCourseId     = request.CurrentCourseId,
-            AccountId           = request.AccountId,
-            MedicalReferenceId  = request.MedicalReferenceId,
-            TaxpayerId          = request.TaxpayerId,
-            ReceiptTypeId       = request.ReceiptTypeId,
-            PreviousSchoolId    = request.PreviousSchoolId,
-            BirthCityId         = request.BirthCityId,
-            BloodTypeId         = request.BloodTypeId
-        };
-
-        var created = await _students.CreateAsync(student, createdBy);
+        var userId = GetUserId();
+        var created = await _students.CreateAsync(MapToStudent(request), userId);
         return Created($"/api/v1/students/{created.Id}", new { created.Id, created.Enrollment });
     }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, [FromBody] StudentRequest request)
+    {
+        var userId = GetUserId();
+        var updated = await _students.UpdateAsync(id, MapToStudent(request), userId);
+        return updated is null ? NotFound() : Ok(updated);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var deleted = await _students.DeleteAsync(id, GetUserId());
+        return deleted ? NoContent() : NotFound();
+    }
+
+    private int GetUserId() =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid) ? uid : 0;
+
+    private static Student MapToStudent(StudentRequest r) => new()
+    {
+        NationalId                 = r.NationalId,
+        DocumentType               = r.DocumentType,
+        FirstName                  = r.FirstName,
+        MiddleName                 = r.MiddleName,
+        FirstLastName              = r.FirstLastName,
+        SecondLastName             = r.SecondLastName,
+        Email                      = r.Email,
+        Phone                      = r.Phone,
+        PhoneType                  = r.PhoneType,
+        Gender                     = r.Gender,
+        MaritalStatus              = r.MaritalStatus,
+        Comment                    = r.Comment,
+        RegistrationDate           = r.RegistrationDate,
+        NationalityId              = r.NationalityId,
+        Enrollment                 = r.Enrollment,
+        MinistryId                 = r.MinistryId,
+        Photo                      = r.Photo,
+        BirthDate                  = r.BirthDate,
+        PreferredShift             = r.PreferredShift,
+        Allergies                  = r.Allergies,
+        Illnesses                  = r.Illnesses,
+        HealthCondition            = r.HealthCondition,
+        OtherDifficulties          = r.OtherDifficulties,
+        HealthComment              = r.HealthComment,
+        SiblingNumber              = r.SiblingNumber,
+        OrderNumber                = r.OrderNumber,
+        HasConcession              = r.HasConcession,
+        HasMedicalLicense          = r.HasMedicalLicense,
+        HasPendings                = r.HasPendings,
+        CircularSending            = r.CircularSending,
+        AllowPreviousYearsGrading  = r.AllowPreviousYearsGrading,
+        AdmissionFeeAction         = r.AdmissionFeeAction,
+        EnrollmentType             = r.EnrollmentType,
+        DoesNotRequireAdmission    = r.DoesNotRequireAdmission,
+        FamilyId                   = r.FamilyId,
+        CurrentCourseId            = r.CurrentCourseId,
+        AccountId                  = r.AccountId,
+        MedicalReferenceId         = r.MedicalReferenceId,
+        TaxpayerId                 = r.TaxpayerId,
+        ReceiptTypeId              = r.ReceiptTypeId,
+        PreviousSchoolId           = r.PreviousSchoolId,
+        BirthCityId                = r.BirthCityId,
+        BloodTypeId                = r.BloodTypeId,
+    };
 }
 
-public record CreateStudentRequest(
+public record StudentRequest(
     string FirstName,
     string FirstLastName,
     string Enrollment,
