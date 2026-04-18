@@ -1,7 +1,7 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
 
-namespace Services.Data;
+namespace Infrastructure.Data;
 
 public class SqlConnectionFactory : IDbConnectionFactory
 {

@@ -1,8 +1,9 @@
 using Dapper;
 using Domain;
-using Services.Data;
+using Infrastructure.Data;
+using Services.Users;
 
-namespace Services.Users;
+namespace Infrastructure.Users;
 
 public class UserRepository : IUserRepository
 {

@@ -1,19 +1,17 @@
 using System.Security.Claims;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Users;
 
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class UsersController : ControllerBase
+[ApiVersion(1)]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class UsersController(IUserService users) : ControllerBase
 {
-    private readonly IUserService _users;
-
-    public UsersController(IUserService users)
-    {
-        _users = users;
-    }
+    private readonly IUserService _users = users;
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)

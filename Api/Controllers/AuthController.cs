@@ -1,18 +1,15 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using Services.Users;
 
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+[ApiVersion(1)]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class AuthController(IUserService users) : ControllerBase
 {
-    private readonly IUserService _users;
-
-    public AuthController(IUserService users)
-    {
-        _users = users;
-    }
+    private readonly IUserService _users = users;
 
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
