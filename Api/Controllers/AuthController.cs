@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Services.Auth;
+using Services.Users;
 
 namespace Api.Controllers;
 
@@ -7,21 +7,18 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IJwtService _jwtService;
+    private readonly IUserService _users;
 
-    public AuthController(IJwtService jwtService)
+    public AuthController(IUserService users)
     {
-        _jwtService = jwtService;
+        _users = users;
     }
 
     [HttpPost("login")]
-    public ActionResult<LoginResponse> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
-        // TODO: replace with real user/credential lookup once users are modeled.
-        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-            return Unauthorized();
-
-        var token = _jwtService.GenerateToken(userId: "1", userName: request.Username);
+        var token = await _users.AuthenticateAsync(request.Username, request.Password);
+        if (token is null) return Unauthorized();
         return Ok(new LoginResponse(token));
     }
 }
