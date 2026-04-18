@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/alber/source/repos/CollegerCicre/**)",
+      "Read(//c/Users/alber/source/repos/**)",
+      "Bash(dotnet add *)",
+      "Bash(dotnet list *)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet remove *)"
+    ]
+  }
+}

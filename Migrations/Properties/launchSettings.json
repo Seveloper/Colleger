@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "Up": {
+      "commandName": "Project",
+      "commandLineArgs": "up"
+    },
+    "Down": {
+      "commandName": "Project",
+      "commandLineArgs": "down"
+    }
+  }
+}
