@@ -1,6 +1,8 @@
+using System.Net;
 using System.Security.Claims;
 using Asp.Versioning;
 using Domain;
+using Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Students;
@@ -16,40 +18,47 @@ public class StudentsController(IStudentService students) : ControllerBase
     private readonly IStudentService _students = students;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Student>>> GetAll([FromQuery] string? search = null)
+    public async Task<IActionResult> GetAll([FromQuery] string? search = null)
     {
-        var result = await _students.GetAllAsync(search);
-        return Ok(result);
+        var data = await _students.GetAllAsync(search);
+        return Ok(ApiResponse<IEnumerable<Student>>.Ok(data));
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Student>> GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
         var student = await _students.GetByIdAsync(id);
-        return student is null ? NotFound() : Ok(student);
+        if (student is null)
+            return NotFound(ApiResponse<Student>.Fail(HttpStatusCode.NotFound, $"Student {id} not found."));
+        return Ok(ApiResponse<Student>.Ok(student));
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] StudentRequest request)
     {
-        var userId = GetUserId();
+        var userId  = GetUserId();
         var created = await _students.CreateAsync(MapToStudent(request), userId);
-        return Created($"/api/v1/students/{created.Id}", new { created.Id, created.Enrollment });
+        return Created($"/api/v1/students/{created.Id}",
+            ApiResponse<object>.Ok(new { created.Id, created.Enrollment }));
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] StudentRequest request)
     {
-        var userId = GetUserId();
+        var userId  = GetUserId();
         var updated = await _students.UpdateAsync(id, MapToStudent(request), userId);
-        return updated is null ? NotFound() : Ok(updated);
+        if (updated is null)
+            return NotFound(ApiResponse<Student>.Fail(HttpStatusCode.NotFound, $"Student {id} not found."));
+        return Ok(ApiResponse<Student>.Ok(updated));
     }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _students.DeleteAsync(id, GetUserId());
-        return deleted ? NoContent() : NotFound();
+        if (!deleted)
+            return NotFound(ApiResponse<object>.Fail(HttpStatusCode.NotFound, $"Student {id} not found."));
+        return Ok(new ApiResponse<object>());
     }
 
     private int GetUserId() =>

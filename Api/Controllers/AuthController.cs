@@ -1,4 +1,6 @@
+using System.Net;
 using Asp.Versioning;
+using Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 using Services.Users;
 
@@ -12,11 +14,12 @@ public class AuthController(IUserService users) : ControllerBase
     private readonly IUserService _users = users;
 
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var token = await _users.AuthenticateAsync(request.Username, request.Password);
-        if (token is null) return Unauthorized();
-        return Ok(new LoginResponse(token));
+        if (token is null)
+            return Unauthorized(ApiResponse<LoginResponse>.Fail(HttpStatusCode.Unauthorized, "Invalid username or password."));
+        return Ok(ApiResponse<LoginResponse>.Ok(new LoginResponse(token)));
     }
 }
 

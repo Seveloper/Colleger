@@ -1,0 +1,10 @@
+namespace Domain.Common;
+
+public enum ErrorLevels
+{
+    Debug   = 0,
+    Info    = 1,
+    Warning = 2,
+    Error   = 3,
+    Fatal   = 4,
+}

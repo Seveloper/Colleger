@@ -1,6 +1,7 @@
+using System.Net;
 using System.Security.Claims;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
+using Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 using Services.Users;
 
@@ -17,15 +18,15 @@ public class UsersController(IUserService users) : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-            return BadRequest(new { message = "Username and password are required." });
+            return BadRequest(ApiResponse<object>.Fail(HttpStatusCode.BadRequest, "Username and password are required."));
 
         var createdBy = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid) ? uid : 0;
-
         var user = await _users.RegisterAsync(request.Username, request.Email, request.Password, createdBy);
         if (user is null)
-            return Conflict(new { message = "Username already exists." });
+            return Conflict(ApiResponse<object>.Fail(HttpStatusCode.Conflict, "Username already exists."));
 
-        return Created($"/api/users/{user.Id}", new { user.Id, user.Username, user.Email });
+        return Created($"/api/v1/users/{user.Id}",
+            ApiResponse<object>.Ok(new { user.Id, user.Username, user.Email }));
     }
 }
 
