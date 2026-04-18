@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 # Frontend lives in its own repo
 frontend/
+.claude/
